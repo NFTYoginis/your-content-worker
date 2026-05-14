@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>your-content-worker — a content-generation Claude worker, ICM-structured, fork-ready</title>
+  <meta name="description" content="An open-source content-generation worker built on ICM principles. Brief-driven, voice-configurable, dispatch-ready. MIT licensed. Fork it and put it to work.">
+
+  <meta property="og:title" content="your-content-worker">
+  <meta property="og:description" content="A content-generation Claude worker, ICM-structured, fork-ready.">
+  <meta property="og:type" content="website">
+  <!-- TODO: og-image.png delivered by design worker in follow-up dispatch -->
+  <meta property="og:image" content="og-image.png">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="your-content-worker">
+  <meta name="twitter:description" content="A content-generation Claude worker, ICM-structured, fork-ready.">
+
+  <style>
+    :root {
+      --paper: #fbfaf7;
+      --ink: #16151a;
+      --muted: #6c6a66;
+      --rust: #a64d3a;
+      --rust-soft: #c97161;
+      --rule: #d8d3c8;
+      --surface: #f3efe6;
+      --inset: #1f1d22;
+      --inset-ink: #ece6da;
+      --inset-rust: #d99680;
+      --max: 720px;
+      --serif: "Charter", "Iowan Old Style", "Iowan", "Palatino", "Georgia", "Cambria", "Times New Roman", serif;
+      --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: var(--serif);
+      font-size: 1.0625rem;
+      line-height: 1.7;
+      color: var(--ink);
+      background: var(--paper);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      font-feature-settings: "kern" 1, "liga" 1, "onum" 1;
+    }
+
+    a {
+      color: var(--rust);
+      text-decoration: underline;
+      text-underline-offset: 0.18em;
+      text-decoration-thickness: 0.5px;
+    }
+
+    a:hover {
+      text-decoration-thickness: 1.5px;
+    }
+
+    /* Sticky nav */
+    nav.top {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(251, 250, 247, 0.92);
+      backdrop-filter: saturate(180%) blur(8px);
+      -webkit-backdrop-filter: saturate(180%) blur(8px);
+      border-bottom: 1px solid var(--rule);
+    }
+
+    nav.top .nav-inner {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 0.85rem 1.5rem;
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 1.5rem;
+    }
+
+    nav.top .brand {
+      font-family: var(--serif);
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--ink);
+      text-decoration: none;
+      letter-spacing: -0.005em;
+    }
+
+    nav.top .brand .dot {
+      color: var(--rust);
+    }
+
+    nav.top ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      gap: 1.25rem;
+      align-items: baseline;
+      font-size: 0.875rem;
+    }
+
+    nav.top ul a {
+      color: var(--muted);
+      text-decoration: none;
+      font-family: var(--serif);
+    }
+
+    nav.top ul a:hover {
+      color: var(--ink);
+    }
+
+    nav.top .cta {
+      color: var(--rust);
+      text-decoration: none;
+      font-weight: 600;
+      border-bottom: 1px solid var(--rust);
+      padding-bottom: 1px;
+    }
+
+    nav.top .cta:hover {
+      color: var(--ink);
+      border-bottom-color: var(--ink);
+    }
+
+    /* Main column */
+    main {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    /* Hero */
+    .hero {
+      padding: 5rem 0 3.5rem;
+    }
+
+    .hero .kicker {
+      font-family: var(--serif);
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--rust);
+      margin: 0 0 1.5rem;
+    }
+
+    .hero h1 {
+      font-family: var(--serif);
+      font-size: clamp(2.25rem, 4.4vw, 3.25rem);
+      line-height: 1.1;
+      font-weight: 700;
+      letter-spacing: -0.018em;
+      margin: 0 0 1.75rem;
+      color: var(--ink);
+    }
+
+    .hero .standfirst {
+      font-style: italic;
+      font-size: 1.25rem;
+      line-height: 1.55;
+      color: var(--muted);
+      margin: 0 0 2.25rem;
+      max-width: 38rem;
+    }
+
+    .hero .cta-row {
+      display: flex;
+      gap: 1.5rem;
+      align-items: baseline;
+      flex-wrap: wrap;
+    }
+
+    .hero .cta-primary {
+      display: inline-block;
+      background: var(--ink);
+      color: var(--paper);
+      text-decoration: none;
+      padding: 0.85rem 1.4rem;
+      font-family: var(--serif);
+      font-weight: 600;
+      font-size: 1rem;
+      border: 1px solid var(--ink);
+    }
+
+    .hero .cta-primary:hover {
+      background: var(--rust);
+      border-color: var(--rust);
+    }
+
+    .hero .cta-secondary {
+      color: var(--ink);
+      font-family: var(--serif);
+      font-weight: 600;
+    }
+
+    .hero .cta-secondary::after {
+      content: " \2192";
+      color: var(--rust);
+    }
+
+    /* Section dividers (horizontal rules) */
+    hr.sep {
+      border: 0;
+      border-top: 1px solid var(--rule);
+      margin: 0;
+    }
+
+    /* Section */
+    section {
+      padding: 4rem 0;
+    }
+
+    section .eyebrow {
+      font-family: var(--serif);
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--rust);
+      margin: 0 0 1rem;
+    }
+
+    section h2 {
+      font-family: var(--serif);
+      font-size: 1.875rem;
+      line-height: 1.2;
+      font-weight: 700;
+      letter-spacing: -0.012em;
+      margin: 0 0 1.5rem;
+      color: var(--ink);
+    }
+
+    section p { margin: 0 0 1.25rem; }
+
+    section p.lead {
+      font-size: 1.1875rem;
+      line-height: 1.55;
+      color: var(--ink);
+      margin-bottom: 2rem;
+    }
+
+    /* Three-pane benefit row */
+    .panes {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 2rem;
+      margin: 2rem 0 0;
+    }
+
+    @media (min-width: 640px) {
+      .panes {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 2.5rem;
+      }
+    }
+
+    .panes .pane h3 {
+      font-family: var(--serif);
+      font-size: 1.125rem;
+      font-weight: 700;
+      margin: 0 0 0.5rem;
+      color: var(--ink);
+    }
+
+    .panes .pane h3::before {
+      content: "\2014  ";
+      color: var(--rust);
+    }
+
+    .panes .pane p {
+      font-size: 0.9375rem;
+      line-height: 1.6;
+      color: var(--muted);
+      margin: 0;
+    }
+
+    /* Code block — only place monospace appears */
+    .code-inset {
+      background: var(--inset);
+      color: var(--inset-ink);
+      font-family: var(--mono);
+      font-size: 0.84rem;
+      line-height: 1.7;
+      padding: 1.5rem 1.75rem;
+      margin: 2.5rem 0;
+      overflow-x: auto;
+      border-left: 3px solid var(--rust);
+    }
+
+    .code-inset .label {
+      color: var(--inset-rust);
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-size: 0.72rem;
+      display: block;
+      margin-bottom: 0.75rem;
+    }
+
+    .code-inset .comment { color: #8a857a; }
+    .code-inset .prompt { color: var(--inset-rust); }
+
+    /* Differentiators list */
+    ol.differentiators {
+      list-style: none;
+      counter-reset: diff;
+      padding: 0;
+      margin: 2rem 0 0;
+    }
+
+    ol.differentiators li {
+      counter-increment: diff;
+      padding: 1.25rem 0 1.25rem 3rem;
+      border-bottom: 1px solid var(--rule);
+      position: relative;
+    }
+
+    ol.differentiators li:last-child { border-bottom: 0; }
+
+    ol.differentiators li::before {
+      content: counter(diff, decimal-leading-zero);
+      position: absolute;
+      left: 0;
+      top: 1.25rem;
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      color: var(--rust);
+      letter-spacing: 0.05em;
+    }
+
+    ol.differentiators li h3 {
+      font-family: var(--serif);
+      font-size: 1.125rem;
+      font-weight: 700;
+      margin: 0 0 0.35rem;
+      color: var(--ink);
+    }
+
+    ol.differentiators li p {
+      font-size: 0.9375rem;
+      line-height: 1.6;
+      color: var(--muted);
+      margin: 0;
+    }
+
+    /* Sample output */
+    .sample {
+      margin: 2rem 0 0;
+    }
+
+    .sample h3 {
+      font-family: var(--serif);
+      font-size: 1.0625rem;
+      font-weight: 700;
+      margin: 0 0 0.5rem;
+      color: var(--ink);
+    }
+
+    .sample .meta {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin: 0 0 1.5rem;
+      font-style: italic;
+    }
+
+    .sample .excerpt {
+      padding-left: 1.25rem;
+      border-left: 2px solid var(--rust);
+      margin: 1rem 0 1.5rem;
+    }
+
+    .sample .excerpt p {
+      font-size: 1rem;
+      line-height: 1.65;
+      color: var(--ink);
+      margin: 0 0 1rem;
+    }
+
+    .sample .excerpt p:last-child { margin-bottom: 0; }
+
+    .sample .excerpt em.title {
+      font-style: italic;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    /* Proof block */
+    .proof-placeholder {
+      background: var(--surface);
+      border: 1px dashed var(--rule);
+      padding: 2rem 1.75rem;
+      margin: 2rem 0 0;
+      text-align: center;
+    }
+
+    .proof-placeholder p {
+      font-style: italic;
+      color: var(--muted);
+      margin: 0 0 0.5rem;
+      font-size: 0.95rem;
+    }
+
+    .proof-placeholder p:last-child { margin-bottom: 0; }
+
+    .proof-placeholder strong {
+      font-style: normal;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    /* Setup steps */
+    ol.setup {
+      counter-reset: step;
+      list-style: none;
+      padding: 0;
+      margin: 2rem 0 0;
+    }
+
+    ol.setup li {
+      counter-increment: step;
+      padding: 0 0 1.5rem 3rem;
+      position: relative;
+    }
+
+    ol.setup li::before {
+      content: "Step " counter(step);
+      position: absolute;
+      left: 0;
+      top: 0;
+      font-family: var(--serif);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--rust);
+      font-weight: 600;
+      width: 2.75rem;
+      text-align: left;
+    }
+
+    ol.setup li h3 {
+      font-family: var(--serif);
+      font-size: 1.0625rem;
+      font-weight: 700;
+      margin: -0.18rem 0 0.4rem;
+      color: var(--ink);
+    }
+
+    ol.setup li p {
+      font-size: 0.9375rem;
+      line-height: 1.65;
+      color: var(--muted);
+      margin: 0 0 0.5rem;
+    }
+
+    ol.setup code {
+      font-family: var(--mono);
+      font-size: 0.84em;
+      background: var(--surface);
+      padding: 0.1em 0.45em;
+      color: var(--ink);
+    }
+
+    /* FAQ */
+    details.faq {
+      border-bottom: 1px solid var(--rule);
+      padding: 1.25rem 0;
+    }
+
+    details.faq:first-of-type {
+      border-top: 1px solid var(--rule);
+    }
+
+    details.faq summary {
+      cursor: pointer;
+      font-family: var(--serif);
+      font-size: 1.0625rem;
+      font-weight: 700;
+      color: var(--ink);
+      list-style: none;
+      padding-right: 2rem;
+      position: relative;
+    }
+
+    details.faq summary::-webkit-details-marker { display: none; }
+
+    details.faq summary::after {
+      content: "+";
+      position: absolute;
+      right: 0;
+      top: -0.15rem;
+      font-family: var(--mono);
+      font-size: 1.2rem;
+      color: var(--rust);
+      font-weight: 400;
+    }
+
+    details.faq[open] summary::after { content: "\2013"; }
+
+    details.faq .answer {
+      padding-top: 1rem;
+    }
+
+    details.faq .answer p {
+      font-size: 0.9375rem;
+      line-height: 1.65;
+      color: var(--ink);
+      margin: 0 0 0.75rem;
+    }
+
+    details.faq .answer p:last-child { margin-bottom: 0; }
+
+    details.faq .answer code {
+      font-family: var(--mono);
+      font-size: 0.84em;
+      background: var(--surface);
+      padding: 0.1em 0.4em;
+    }
+
+    /* Forward note */
+    .forward {
+      background: var(--surface);
+      padding: 1.5rem 1.75rem;
+      margin: 2rem 0 0;
+      border-left: 3px solid var(--rule);
+      font-size: 0.95rem;
+      color: var(--muted);
+    }
+
+    .forward strong { color: var(--ink); font-weight: 700; }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--rule);
+      padding: 3rem 0 4rem;
+      margin-top: 4rem;
+    }
+
+    footer .footer-inner {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    footer .attribution {
+      font-family: var(--serif);
+      font-size: 0.95rem;
+      color: var(--ink);
+      margin: 0 0 1.5rem;
+      font-weight: 600;
+    }
+
+    footer .attribution .rust { color: var(--rust); }
+
+    footer .meta {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin: 0 0 0.5rem;
+    }
+
+    footer .meta a { color: var(--muted); }
+
+    footer ul {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 1.5rem;
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      font-size: 0.875rem;
+    }
+
+    footer ul a {
+      color: var(--ink);
+      text-decoration: underline;
+      text-underline-offset: 0.15em;
+      text-decoration-thickness: 0.5px;
+    }
+
+    /* Print + reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="top">
+  <div class="nav-inner">
+    <a href="#top" class="brand">your-content-worker<span class="dot">.</span></a>
+    <ul>
+      <li><a href="#what">What</a></li>
+      <li><a href="#sample">Sample</a></li>
+      <li><a href="#setup">Setup</a></li>
+      <li><a href="#faq">FAQ</a></li>
+      <li><a href="https://github.com/NFTYoginis/your-content-worker" class="cta">GitHub</a></li>
+    </ul>
+  </div>
+</nav>
+
+<main id="top">
+
+  <section class="hero">
+    <p class="kicker">Operator-stack series · Repo 1 of 3</p>
+    <h1>A content-generation Claude worker, ICM-structured, fork-ready.</h1>
+    <p class="standfirst">Dispatched a brief, produces prose in a configurable voice. Three Markdown files declare the architecture; one file holds the voice you write in. MIT licensed.</p>
+    <div class="cta-row">
+      <a href="https://github.com/NFTYoginis/your-content-worker" class="cta-primary">View on GitHub</a>
+      <a href="#setup" class="cta-secondary">Five-minute setup</a>
+    </div>
+  </section>
+
+  <hr class="sep">
+
+  <section id="what">
+    <p class="eyebrow">What it is</p>
+    <h2>Brief-driven. Voice-configurable. Dispatch-ready.</h2>
+    <p class="lead">A working Claude worker that does one thing. You give it a brief, it reads the voice configuration you've defined, and it produces prose in that voice. Fork the repo, edit one Markdown file, dispatch your first brief in under five minutes.</p>
+
+    <div class="panes">
+      <div class="pane">
+        <h3>Brief-driven</h3>
+        <p>Every dispatch starts with a six-section brief at <code>briefs/&lt;date&gt;-&lt;slug&gt;.md</code>. The brief is the contract. The worker reads it, produces, verifies against its own success criteria, hands back.</p>
+      </div>
+      <div class="pane">
+        <h3>Voice-configurable</h3>
+        <p>The voice lives in <code>reference/voice.md</code>. Three or four paragraphs of your rules — tone, rhythm, vocabulary, what you sound like, what you don't. Edit once; the worker reads it every dispatch.</p>
+      </div>
+      <div class="pane">
+        <h3>Dispatch-ready</h3>
+        <p>The orchestrator-worker boundary is enforced in the architecture, not the prompts. The worker doesn't pick its own work. The brief is the only context. No speculative loading. No scope extension.</p>
+      </div>
+    </div>
+
+    <div class="code-inset">
+      <span class="label">A dispatch trigger looks like this</span><span class="comment"># In a fresh Claude session, after opening the repo folder:</span>
+<span class="prompt">&gt;</span> Read the brief at briefs/2026-05-14-focusblock-launch.md and execute.
+
+<span class="comment"># That's the entire dispatch. The worker handles the rest:</span>
+<span class="comment">#   1. Reads STATUS.md (first read)</span>
+<span class="comment">#   2. Reads the brief (the contract)</span>
+<span class="comment">#   3. Reads reference/voice.md (how to sound)</span>
+<span class="comment">#   4. Runs the pre-flight checklist (5 items, grep-able)</span>
+<span class="comment">#   5. Produces the artifact</span>
+<span class="comment">#   6. Self-verifies against the brief's success criteria</span>
+<span class="comment">#   7. Updates STATUS.md (last write)</span>
+    </div>
+  </section>
+
+  <hr class="sep">
+
+  <section id="why">
+    <p class="eyebrow">Why this one</p>
+    <h2>Five things this starter does that most don't.</h2>
+    <p>There are other Claude-worker starter kits. The differentiators below are the reasons this one exists. Each is enforced by the architecture, not by a README that hopes you'll remember.</p>
+
+    <ol class="differentiators">
+      <li>
+        <h3>ICM rigor</h3>
+        <p>The three always-relevant files — <code>CLAUDE.md</code>, <code>CONTEXT.md</code>, <code>STATUS.md</code> — plus identity, rules, examples, and reference. Not "a <code>CLAUDE.md</code> and hope." Structural, named, enforced.</p>
+      </li>
+      <li>
+        <h3>60-30-10 layer separation</h3>
+        <p>Infrastructure / Orchestration / AI, in the corrected definition. AI is the 10%; the other 90% lives in scripts, files, and declarative rules outside Claude. Most kits make Claude the whole stack. This one keeps it in its lane.</p>
+      </li>
+      <li>
+        <h3>Brief-as-contract dispatch</h3>
+        <p>Clean role boundary between orchestrator and worker. The worker is meant to be called, not driven free-form. The brief is durable, audit-trail-friendly, and complete-or-refused — no "I'll do my best with what's missing."</p>
+      </li>
+      <li>
+        <h3>Pages-ready landing</h3>
+        <p>The repo IS its own marketing surface. Push it, enable GitHub Pages from the <code>/docs</code> folder, and a public URL goes live in sixty seconds. The page you're reading now is that file.</p>
+      </li>
+      <li>
+        <h3>Tied to a real article series</h3>
+        <p>The architecture is documented in the operator-AI series, starting with "I burned 800,000 tokens on one daily routine." Read the article, then the code. The two reinforce each other.</p>
+      </li>
+    </ol>
+  </section>
+
+  <hr class="sep">
+
+  <section id="sample">
+    <p class="eyebrow">Sample output</p>
+    <h2>One brief, one post.</h2>
+    <p>The repo ships with one worked example. A six-section brief asks for a 600-800 word product-launch post for a focus-timer app called <em>FocusBlock</em>. The worker reads the brief, reads the default voice configuration, and produces the post. Both the brief and the full output are in the repo.</p>
+
+    <div class="sample">
+      <h3>Excerpt from the produced post</h3>
+      <p class="meta">Brief: briefs/2026-05-14-example.md  ·  Output: examples.md  ·  Voice: default</p>
+      <div class="excerpt">
+        <p><em class="title">Most productivity apps optimize for willpower. FocusBlock optimizes for scheduling.</em></p>
+        <p>FocusBlock is generally available today. It is a focus-timer and a deep-work scheduler, available on macOS, Windows, and Linux. The thing it does differently is small, and it took us longer than we wanted to admit before we built it: it puts the focus session on your calendar, not on you.</p>
+        <p>Most apps that promise to help you focus operate on willpower. They nag. They gamify streaks. They lock you out of sites you visit when you're tired. The model is: you are weak at 2pm, and the app is the muscle.</p>
+        <p>This works for about three weeks. Then the streak breaks, the nag becomes background noise, the lockout gets disabled at the first urgent ping. The user goes back to whatever they were doing before. The conclusion most apps draw is that the user needed more discipline. The conclusion we drew is that willpower was the wrong layer.</p>
+      </div>
+      <p style="font-size: 0.875rem; color: var(--muted);">Full 650-word output, including all three section headings and the worker's self-verification table, is in <a href="https://github.com/NFTYoginis/your-content-worker/blob/main/examples.md">examples.md</a>.</p>
+    </div>
+  </section>
+
+  <hr class="sep">
+
+  <section id="proof">
+    <p class="eyebrow">In production</p>
+    <h2>Real-user receipts.</h2>
+    <p>This repo is a fresh release. Real-user receipts go in the block below once operators who fork it ship work with it.</p>
+
+    <div class="proof-placeholder">
+      <p><strong>Receipts pending.</strong></p>
+      <p>Forked this repo and shipped real work with it? Open an issue with a one-paragraph note on what you built and how the dispatch shape held up. Selected receipts will be quoted here verbatim, with consent.</p>
+      <!-- TODO: operator — replace placeholder with real receipts once forks start shipping in production. Never invent receipts. -->
+    </div>
+  </section>
+
+  <hr class="sep">
+
+  <section id="setup">
+    <p class="eyebrow">Get started</p>
+    <h2>Five minutes from fork to first dispatch.</h2>
+
+    <ol class="setup">
+      <li>
+        <h3>Fork the repo</h3>
+        <p>Click Fork on the <a href="https://github.com/NFTYoginis/your-content-worker">GitHub page</a>, or clone directly: <code>git clone https://github.com/NFTYoginis/your-content-worker.git</code></p>
+      </li>
+      <li>
+        <h3>Open the folder in a Claude session</h3>
+        <p>Either Claude Code in the terminal, or a Claude Project with the folder uploaded. The worker reads <code>CLAUDE.md</code> as its entry point.</p>
+      </li>
+      <li>
+        <h3>Edit <code>reference/voice.md</code></h3>
+        <p>The repo ships with a working default voice so the example dispatches as-is. Replace the default with your own voice rules — tone, rhythm, vocabulary, what you sound like, what you don't. Three or four paragraphs.</p>
+      </li>
+      <li>
+        <h3>Write your first brief</h3>
+        <p>Copy <code>briefs/_BRIEF-TEMPLATE.md</code> to <code>briefs/&lt;today&gt;-&lt;slug&gt;.md</code>. Fill the six sections. Keep it on one screen.</p>
+      </li>
+      <li>
+        <h3>Dispatch</h3>
+        <p>Paste this into the Claude session: <code>Read the brief at briefs/&lt;your-filename&gt;.md and execute.</code> The worker takes it from there.</p>
+      </li>
+    </ol>
+  </section>
+
+  <hr class="sep">
+
+  <section id="faq">
+    <p class="eyebrow">Questions</p>
+    <h2>What you'll want to know.</h2>
+
+    <details class="faq">
+      <summary>Do I need Claude Code, or does this work in a Claude Project?</summary>
+      <div class="answer">
+        <p>Both work. The worker's contract is in Markdown files; any Claude session that can read and write files in the repo folder is sufficient. Claude Code in the terminal is the smoothest experience because the worker can write its own <code>STATUS.md</code> updates and question files directly. A Claude Project works too — you'll just need to paste status updates back yourself.</p>
+      </div>
+    </details>
+
+    <details class="faq">
+      <summary>What's the difference between this and other ICM starter kits?</summary>
+      <div class="answer">
+        <p>Three things, in order of importance. First, the architecture enforces the orchestrator-worker boundary — most kits collapse both roles into one session and burn tokens accordingly. Second, the 60-30-10 layer framework is restated correctly (Infrastructure / Orchestration / AI), not as a context-budget split. Third, every repo ships with a Pages-ready landing page; push to GitHub, enable Pages from <code>/docs</code>, public URL in sixty seconds.</p>
+      </div>
+    </details>
+
+    <details class="faq">
+      <summary>Why is the voice file separate from the worker code?</summary>
+      <div class="answer">
+        <p>Because voice is the configurable part. The worker's job — read brief, read voice, produce prose — doesn't change when your brand voice changes. Keeping the voice in <code>reference/voice.md</code> means you can fork once and re-skin the worker for different brands, different audiences, or different campaigns without touching anything in <code>rules.md</code> or <code>identity.md</code>.</p>
+      </div>
+    </details>
+
+    <details class="faq">
+      <summary>What does the worker refuse to do?</summary>
+      <div class="answer">
+        <p>Five named refusal gates in <code>rules.md</code>, each with verbatim refusal language. The big ones: empty voice configuration, missing brief preconditions, claims the brief doesn't ground, high-harm domains without explicit authorization, and impersonation of named third parties without consent confirmation. When a gate fires, the worker writes a question file at <code>briefs/questions/&lt;slug&gt;-question.md</code> and stops. It does not "do its best."</p>
+      </div>
+    </details>
+
+    <details class="faq">
+      <summary>Why six sections in the brief? Why not free-form?</summary>
+      <div class="answer">
+        <p>The six sections are: what to produce, audience, format and constraints, voice override or default, success criteria, refusal context. Free-form briefs put the worker in the position of guessing what the operator meant. Guessing is the most expensive bug in this kind of architecture — it produces output that's plausibly close to what was wanted but materially wrong. Six sections is the smallest contract that closes the guessing space.</p>
+      </div>
+    </details>
+
+    <details class="faq">
+      <summary>Can I add more worker types to the same repo?</summary>
+      <div class="answer">
+        <p>You can. The cleaner pattern is one worker per repo, because each worker has different reference material and different refusal gates. The operator-stack series follows this: <code>your-content-worker</code> for prose, <code>your-design-worker</code> for visual assets, <code>your-animation-worker</code> for voice-to-video. Same architecture, three repos. One orchestrator dispatches to all three.</p>
+      </div>
+    </details>
+
+    <details class="faq">
+      <summary>What if the worker starts narrating its own thinking?</summary>
+      <div class="answer">
+        <p>That's the orchestrator-worker boundary leaking. The worker's job is to produce the artifact and update STATUS, not to monologue. If you see narration, the brief is probably under-specified — the worker is filling the gap with prose about what it might do, instead of producing what was asked for. Tighten the brief; re-read <code>rules.md</code> with the worker.</p>
+      </div>
+    </details>
+
+    <details class="faq">
+      <summary>Is this affiliated with Anthropic or Claude?</summary>
+      <div class="answer">
+        <p>No. This is an independent project demonstrating one way to structure a Claude-based content worker. Claude is the model the worker runs on; the architecture and the opinions are this repo's.</p>
+      </div>
+    </details>
+  </section>
+
+  <hr class="sep">
+
+  <section id="series">
+    <p class="eyebrow">The series</p>
+    <h2>One of three.</h2>
+    <p>This repo is the first in a three-repo operator-stack series, each demonstrating the same architecture in a different domain.</p>
+    <div class="forward">
+      <p><strong>your-content-worker</strong> — this one. Brief in, prose out.</p>
+      <p><strong>your-design-worker</strong> — coming next. Brief in, images and HTML previews out.</p>
+      <p><strong>your-animation-worker</strong> — after that. Brief in, voice-to-video MP4 out, via Remotion.</p>
+    </div>
+    <p style="margin-top: 1.5rem;">The architecture is documented in Article 1 of the operator-AI series: <em>I burned 800,000 tokens on one daily routine. Here's the architecture that killed it.</em> Read the article for the receipts and the four mistakes that produced the number; read this repo for the code that runs the fix.</p>
+  </section>
+
+</main>
+
+<footer>
+  <div class="footer-inner">
+    <p class="attribution">By Gabe <span class="rust">&mdash;</span> Your AI Specialist</p>
+    <ul>
+      <li><a href="https://github.com/NFTYoginis/your-content-worker">GitHub repo</a></li>
+      <li><a href="https://github.com/NFTYoginis/your-content-worker/issues">Open an issue</a></li>
+      <li><a href="https://github.com/NFTYoginis/your-content-worker/blob/main/LICENSE">MIT License</a></li>
+    </ul>
+    <p class="meta">MIT licensed. Fork it, edit it, ship it.</p>
+    <p class="meta">Article 1 of the operator-AI series link will be published here once the Medium URL is live.</p>
+    <p class="meta">Last updated: 2026-05-14.</p>
+  </div>
+</footer>
+
+</body>
+</html>
