@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>your-content-worker — a content-generation Claude worker, ICM-structured, fork-ready</title>
-  <meta name="description" content="An open-source content-generation worker built on ICM principles. Brief-driven, voice-configurable, dispatch-ready. MIT licensed. Fork it and put it to work.">
+  <meta name="description" content="An open-source content-generation worker built on ICM principles. Accepts six-section briefs. Reads voice configuration from reference/voice.md. Produces prose matching the configured rules. MIT licensed. Fork it and put it to work.">
 
   <meta property="og:title" content="your-content-worker">
   <meta property="og:description" content="A content-generation Claude worker, ICM-structured, fork-ready.">
@@ -617,8 +617,8 @@
 
   <section id="what">
     <p class="eyebrow">What it is</p>
-    <h2>Brief-driven. Voice-configurable. Dispatch-ready.</h2>
-    <p class="lead">A working Claude worker that does one thing. You give it a brief, it reads the voice configuration you've defined, and it produces prose in that voice. Fork the repo, edit one Markdown file, dispatch your first brief in under five minutes.</p>
+    <h2>Accepts a brief. Produces prose in your configured voice.</h2>
+    <p class="lead">A working Claude worker that does one thing. You give it a brief, it reads the voice configuration you've defined in <code>reference/voice.md</code>, and it produces prose matching those rules. Fork the repo, edit one markdown file, drop a brief in <code>briefs/</code>, dispatch with one prompt.</p>
 
     <div class="panes">
       <div class="pane">
@@ -654,7 +654,7 @@
 
   <section id="why">
     <p class="eyebrow">Why this one</p>
-    <h2>Five things this starter does that most don't.</h2>
+    <h2>Five architectural choices this starter enforces.</h2>
     <p>There are other Claude-worker starter kits. The differentiators below are the reasons this one exists. Each is enforced by the architecture, not by a README that hopes you'll remember.</p>
 
     <ol class="differentiators">
