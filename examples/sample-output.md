@@ -1,4 +1,4 @@
-# Empty and humane are not the same time
+# Empty and humane are not the same thing
 
 You've felt this. The calendar shows a green slot at 4 p.m. your time, everyone's free, you book it. Then three minutes before the call you do the math you should have done first: 4 p.m. for you is 7 a.m. for the colleague in another timezone, and they're joining from a kitchen with a kid on their hip. The slot was free. It was not humane.
 
