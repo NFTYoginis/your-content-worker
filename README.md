@@ -32,6 +32,8 @@ The article: [Article 1 — destination TBD]. Update this link once the Medium U
 
 Full job definitions in [identity.md](identity.md). Routing logic in [CONTEXT.md](CONTEXT.md).
 
+See [examples/](examples/) for a generated sample — a paired brief ([sample-brief.md](examples/sample-brief.md)) and the prose this worker produced from it ([sample-output.md](examples/sample-output.md)), run end-to-end in the default voice. Fork, edit `reference/voice.md`, re-dispatch the same brief, and the mechanism speaks in your voice instead.
+
 ---
 
 ## Five-minute setup

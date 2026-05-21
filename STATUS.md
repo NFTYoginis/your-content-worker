@@ -18,8 +18,8 @@ _(none — anything stalled on you or someone else, with the reason in one line)
 
 ## Recently shipped
 
-_(none — append one line per completed job. Newest first. Keep the last 5; archive the rest.)_
+- 2026-05-21 · overlap-how-it-works · generated sample filed in `examples/` (paired brief + 593-word explainer, default voice) so the repo proves its own output.
 
 ---
 
-Last updated: YYYY-MM-DD
+Last updated: 2026-05-21
